@@ -359,9 +359,8 @@ def process_account(token):
 
 async def main():
 
-    print(f"{Fore.MAGENTA}BOT NODEPAY AUTO LOGIN + PING !!{Style.RESET_ALL}\n")
-    print(f"{Fore.GREEN}TIDAK SUPPORT MULTI AKUN !\n{Style.RESET_ALL}")
-    print(f"{Fore.GREEN}POWERED BY SHARE IT HUB !\n{Style.RESET_ALL}")
+    print(f"{Fore.MAGENTA}BOT NODEPAY TOKEN SCRAPE !!{Style.RESET_ALL}\n")
+    print(f"{Fore.GREEN}SUPPORT MULTI AKUN !.\n{Style.RESET_ALL}")
     
     # Ask user for captcha service and API key
     service_choice = input(f"{Fore.YELLOW}Choose captcha service (1 for 2Captcha): {Style.RESET_ALL}")
