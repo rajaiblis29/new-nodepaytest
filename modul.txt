@@ -1,0 +1,8 @@
+shareithub
+asyncio
+aiohttp
+colorama
+faker
+fake_useragent
+2captcha-python
+cloudscraper
