@@ -219,10 +219,10 @@ CONNECTION_STATES = {
 
 
 
-    def reset(self):
-        self.status_connect = CONNECTION_STATES["NONE_CONNECTION"]
-            self.account_data = {}
-                self.retries = 3
+def reset(self):
+    self.status_connect = CONNECTION_STATES["NONE_CONNECTION"]
+    self.account_data = {}
+    self.retries = 3
 
 
 scraper = cloudscraper.create_scraper(
