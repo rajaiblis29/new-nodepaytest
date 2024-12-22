@@ -217,28 +217,7 @@ CONNECTION_STATES = {
     "NONE_CONNECTION": 3
 }
 
-# Fungsi untuk meminta input proxy
-def get_proxies_from_input():
-    return input("Please enter the BASE_PROXY URL: ")
 
-# Menetapkan BASE_PROXY dari input pengguna
-BASE_PROXY = get_proxies_from_input()
-
-class AccountInfo:
-    def __init__(self, token):
-        self.token = token
-        self.proxies = [BASE_PROXY] * 3  # Each account uses the same proxy up to 3 times
-        self.status_connect = CONNECTION_STATES["NONE_CONNECTION"]
-        self.account_data = {}
-        self.retries = 0
-        self.last_ping_status = 'Waiting...'
-        self.browser_id = {
-            'ping_count': 0,
-            'successful_pings': 0,
-            'score': 0,
-            'start_time': time.time(),
-            'last_ping_time': None
-        }
 
     def reset(self):
         self.status_connect = CONNECTION_STATES["NONE_CONNECTION"]
@@ -265,7 +244,7 @@ async def load_tokens():
         raise SystemExit("Exiting due to failure in loading tokens")
 
 
-async def call_api(url, data, account_info, proxy):
+async def call_api(url, data, account_info):
     headers = {
         "Authorization": f"Bearer {account_info.token}",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
@@ -282,71 +261,15 @@ async def call_api(url, data, account_info, proxy):
         "sec-fetch-site": "cors-site"
     }
 
-    proxy_config = {
-        "http": proxy,
-        "https": proxy
-    }
-
     try:
-        response = scraper.post(url, json=data, headers=headers, proxies=proxy_config, timeout=60)
+        response = scraper.post(url, json=data, headers=headers, timeout=60)
         response.raise_for_status()
     except Exception as e:
-        log_step(f"Error during API call for token {account_info.token} with proxy {proxy}: {e}", "error")
+        log_step(f"Error during API call for token {account_info.token}: {e}", "error")
         raise ValueError(f"Failed API call to {url}")
 
     return response.json()
 
-
-async def render_profile_info(account_info):
-    try:
-        for proxy in account_info.proxies:
-            try:
-                response = await call_api(DOMAIN_API["SESSION"], {}, account_info, proxy)
-                if response.get("code") == 0:
-                    account_info.account_data = response["data"]
-                    if account_info.account_data.get("uid"):
-                        await start_ping(account_info)
-                        return
-                else:
-                    log_step(f"Session failed for token {account_info.token} using proxy {proxy}", "warning")
-            except Exception as e:
-                log_step(f"Failed to render profile info for token {account_info.token} using proxy {proxy}: {e}", "error")
-
-        log_step(f"All proxies failed for token {account_info.token}", "error")
-    except Exception as e:
-        log_step(f"Error in render_profile_info for token {account_info.token}: {e}", "error")
-
-
-async def start_ping(account_info):
-    try:
-        log_step(f"Starting ping for token {account_info.token}", "info")
-        while True:
-            for proxy in account_info.proxies:
-                try:
-                    await asyncio.sleep(PING_INTERVAL)
-                    await ping(account_info, proxy)
-                except Exception as e:
-                    log_step(f"Ping failed for token {account_info.token} using proxy {proxy}: {e}", "error")
-    except asyncio.CancelledError:
-        log_step(f"Ping task for token {account_info.token} was cancelled", "info")
-    except Exception as e:
-        log_step(f"Error in start_ping for token {account_info.token}: {e}", "error")
-
-
-async def ping(account_info, proxy):
-    for url in DOMAIN_API["PING"]:
-        try:
-            data = {
-                "id": account_info.account_data.get("uid"),
-                "browser_id": account_info.browser_id,
-                "timestamp": int(time.time())
-            }
-            response = await call_api(url, data, account_info, proxy)
-            if response["code"] == 0:
-                log_step(f"Ping successful for token {account_info.token} using proxy {proxy}", "success")
-                return
-        except Exception as e:
-            log_step(f"Ping failed for token {account_info.token} using URL {url} and proxy {proxy}: {e}", "error")
 
 
 def process_account(token):
